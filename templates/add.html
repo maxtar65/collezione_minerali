@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Aggiungi Nuovo Minerale{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Aggiungi Nuovo Minerale</h1>
+<form method="POST">
+    <div class="mb-3">
+        <label for="code" class="form-label">Codice</label>
+        <input type="text" class="form-control" id="code" name="code" required>
+    </div>
+    <div class="mb-3">
+        <label for="mineral_species" class="form-label">Specie Minerale</label>
+        <input type="text" class="form-control" id="mineral_species" name="mineral_species" required>
+    </div>
+    <div class="mb-3">
+        <label for="full_location" class="form-label">Località Completa</label>
+        <textarea class="form-control" id="full_location" name="full_location" rows="3" required></textarea>
+    </div>
+    <!-- Aggiungi altri campi del form come necessario -->
+    <button type="submit" class="btn btn-primary">Aggiungi Minerale</button>
+</form>
+{% endblock %}
