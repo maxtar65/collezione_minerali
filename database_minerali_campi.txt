@@ -1,0 +1,98 @@
+Struttura DB minerali
+Specie
+Specie						specie
+Formula						formula
+Sistema cristallino:				sistema_xx (tabella a parte?)
+			Cubic
+			Hexagonal
+			Monoclinic
+			Not crystalline
+			Orthorhombic
+			Tetragonal
+			Triclinic
+			Trigonal
+			dec
+			ico
+Status						status
+Valutare se inserirli – se sì fare tabelle?
+Subgroup					sottogruppo
+Group						gruppo
+Supergroup					supergruppo
+Family						famiglia
+Subclass						sottoclasse
+Class						classe
+
+Elenco campioni
+Codice					codice
+Posizione				posizione
+Specie					specie
+Varietà					varieta
+Alias					alias
+Associazione				associazione
+Codice località				cod_loc
+Località completa			loc_completa
+Dimensionamento:			dimensionamento (tabella?)
+			Micro
+			Thumbnail
+			Miniature
+			Cabinet
+			Tipo 1
+			Tipo 4
+			Tipo 32h
+		
+Dimensioni				dimensioni
+Qualità:					qualita (tabella?)
+	AA
+	A
+	B
+	C
+Data inserimento				data_ins
+Data acquisizione			data_acq		
+Modalità acquisizione	:		mod_acq (tabella?)
+			Asta Ebay
+			Raccolto personalmente
+			Scambiato
+			Acquistato
+			Donato
+			Ex analisi
+Da/Con					acquisito_da (tabella?)	
+Costo					costo
+A: elenco località mostre scambio		luogo_acq (tabella?)
+Scambiato per				scambiato_per
+Note					note
+Referenza				referenza
+Descrizione				descrizione
+Fluorescenza SW:			fluor_sw (tabella?)
+		no
+		not tested
+		rossa
+		azzurra		
+Fluorescenza LW:			fluor_lw (tabella?)
+		not tested
+Radioattività:				radioattivo (tabella?)
+		si
+		no
+		not tested
+Località tipo: si/no			tl (boolean)
+Valutare se inserire:			
+Magnetismo:
+		not tested
+		assente
+		ferromagnetico
+		paramagnetico
+		diamagnetico
+
+Località
+Codice località		cod_loc
+Cava/Miniera		cava_min
+Località/Monte		loc_monte
+Valle			valle
+Comune/città		comune
+Distr./Pref.		distr_pref
+Prov./Co.		provincia
+Regione			regione
+Dipartimento		dipartimento
+Stato			stato
+Nazione			nazione
+Note			note
+Codice Mindat		cod_mindat
