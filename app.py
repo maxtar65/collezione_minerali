@@ -1,56 +1,49 @@
-from flask import Flask, render_template, request, redirect, url_for
-from models import db, Mineral, init_db
-from settings import DEBUG, SECRET_KEY, TEMPLATE_FOLDER, STATIC_FOLDER, SQLALCHEMY_DATABASE_URI, SQLALCHEMY_TRACK_MODIFICATIONS
-import logging
-from logging.handlers import RotatingFileHandler
-from settings import LOG_FILE
+from flask import Flask, render_template, jsonify
+from models import db, Collezione, Localita, Specie, create_database, import_all_data
+from settings import DATABASE_PATH
 
-app = Flask(__name__, template_folder=TEMPLATE_FOLDER, static_folder=STATIC_FOLDER)
-app.config['DEBUG'] = DEBUG
-app.config['SECRET_KEY'] = SECRET_KEY
-app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = SQLALCHEMY_TRACK_MODIFICATIONS
-
-# Initialize SQLAlchemy
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DATABASE_PATH}'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
-
-# Set up logging
-handler = RotatingFileHandler(LOG_FILE, maxBytes=10000, backupCount=1)
-handler.setLevel(logging.INFO)
-app.logger.addHandler(handler)
 
 @app.route('/')
 def index():
-    minerals = Mineral.query.all()
-    app.logger.info('Accessed index page')
-    return render_template('index.html', minerals=minerals)
+    return render_template('index.html')
 
-@app.route('/mineral/<int:id>')
-def mineral_detail(id):
-    mineral = Mineral.query.get_or_404(id)
-    app.logger.info(f'Accessed detail page for mineral id {id}')
-    return render_template('detail.html', mineral=mineral)
+@app.route('/collezione')
+def collezione():
+    items = Collezione.query.all()
+    return render_template('collezione.html', items=items)
 
-@app.route('/add', methods=['GET', 'POST'])
-def add_mineral():
-    if request.method == 'POST':
-        mineral_data = {
-            'Codice Archiviazione': request.form['code'],
-            'Mineral Specie': request.form['mineral_species'],
-            'Localita completa': request.form['full_location'],
-            # Add other fields as necessary
-        }
-        
-        new_mineral = Mineral.create_from_dict(mineral_data)
-        db.session.add(new_mineral)
-        db.session.commit()
-        
-        app.logger.info(f'Added new mineral: {mineral_data["Codice Archiviazione"]}')
-        return redirect(url_for('index'))
-    
-    return render_template('add.html')
+@app.route('/localita')
+def localita():
+    items = Localita.query.all()
+    return render_template('localita.html', items=items)
+
+@app.route('/specie')
+def specie():
+    items = Specie.query.all()
+    return render_template('specie.html', items=items)
+
+# API routes
+@app.route('/api/collezione')
+def api_collezione():
+    items = Collezione.query.all()
+    return jsonify([item.to_dict() for item in items])
+
+@app.route('/api/localita')
+def api_localita():
+    items = Localita.query.all()
+    return jsonify([item.to_dict() for item in items])
+
+@app.route('/api/specie')
+def api_specie():
+    items = Specie.query.all()
+    return jsonify([item.to_dict() for item in items])
 
 if __name__ == '__main__':
     with app.app_context():
-        init_db()
-    app.run()
+        create_database()
+        import_all_data()
+    app.run(debug=True)

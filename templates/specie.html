@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Specie - Minerali Catalog{% endblock %}
+{% block content %}
+<h1>Specie</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Specie</th>
+            <th>Formula</th>
+            <th>Sistema Cristallino</th>
+            <th>Classe</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td>{{ item.specie }}</td>
+            <td>{{ item.formula }}</td>
+            <td>{{ item.sistema_xx }}</td>
+            <td>{{ item.classe }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

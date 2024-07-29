@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Collezione - Minerali Catalog{% endblock %}
+{% block content %}
+<h1>Collezione</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Codice</th>
+            <th>Specie</th>
+            <th>Varietà</th>
+            <th>Località</th>
+            <th>Qualità</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td>{{ item.codice }}</td>
+            <td>{{ item.specie }}</td>
+            <td>{{ item.varieta }}</td>
+            <td>{{ item.cod_loc }}</td>
+            <td>{{ item.qualita }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

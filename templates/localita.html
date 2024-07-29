@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Località - Minerali Catalog{% endblock %}
+{% block content %}
+<h1>Località</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Codice Località</th>
+            <th>Cava/Miniera</th>
+            <th>Nazione</th>
+            <th>Codice Mindat</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td>{{ item.cod_loc }}</td>
+            <td>{{ item.cava_min }}</td>
+            <td>{{ item.nazione }}</td>
+            <td>{{ item.cod_mindat }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
