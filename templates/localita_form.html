@@ -2,6 +2,7 @@
 {% block title %}Specie - Minerali Catalog{% endblock %}
 {% block content %}
 <h1 class="mb-4">Specie Mineralogiche</h1>
+<a href="{{ url_for('new_specie') }}" class="btn btn-primary mb-3">Aggiungi Nuova Specie</a>
 <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
     {% for specie in specie_list %}
     <div class="col">
@@ -10,20 +11,21 @@
                 <h5 class="card-title">{{ specie.specie }}</h5>
                 <h6 class="card-subtitle mb-2 text-muted">{{ specie.formula }}</h6>
                 <p class="card-text">
-                    <strong>Sistema cristallino:</strong> {{ specie.sistema_xx }}<br>
-                    <strong>Status:</strong> {{ specie.status }}<br>
-                    <strong>Gruppo:</strong> {{ specie.gruppo }}<br>
-                    <strong>Sottogruppo:</strong> {{ specie.sottogruppo }}<br>
-                    <strong>Supergruppo:</strong> {{ specie.supergruppo }}<br>
-                    <strong>Famiglia:</strong> {{ specie.famiglia }}<br>
-                    <strong>Sottoclasse:</strong> {{ specie.sottoclasse }}<br>
-                    <strong>Classe:</strong> {{ specie.classe }}
+                    <strong>Sistema cristallino:</strong> {{ specie.sistema_xx or 'N/A' }}<br>
+                    <strong>Status:</strong> {{ specie.status or 'N/A' }}<br>
+                    <strong>Gruppo:</strong> {{ specie.gruppo or 'N/A' }}<br>
+                    <strong>Sottogruppo:</strong> {{ specie.sottogruppo or 'N/A' }}<br>
+                    <strong>Supergruppo:</strong> {{ specie.supergruppo or 'N/A' }}<br>
+                    <strong>Famiglia:</strong> {{ specie.famiglia or 'N/A' }}<br>
+                    <strong>Sottoclasse:</strong> {{ specie.sottoclasse or 'N/A' }}<br>
+                    <strong>Classe:</strong> {{ specie.classe or 'N/A' }}
                 </p>
             </div>
             <div class="card-footer">
                 <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#campioni{{ specie.id }}" aria-expanded="false" aria-controls="campioni{{ specie.id }}">
-                    Campioni in collezione ({{ specie.campioni_count }})
+                    Campioni in collezione ({{ specie.campioni.count() }})
                 </button>
+                <a href="{{ url_for('edit_specie', id=specie.id) }}" class="btn btn-secondary">Modifica</a>
                 <div class="collapse mt-3" id="campioni{{ specie.id }}">
                     <ul class="list-group">
                         {% for campione in specie.campioni %}

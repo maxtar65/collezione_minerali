@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} - Minerali Catalog{% endblock %}
+{% block content %}
+<h1 class="mb-4">{{ title }}</h1>
+<form method="POST">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">
+        {{ form.specie.label(class="form-label") }}
+        {{ form.specie(class="form-control") }}
+    </div>
+    <div class="mb-3">
+        {{ form.formula.label(class="form-label") }}
+        {{ form.formula(class="form-control") }}
+    </div>
+    <!-- Aggiungi gli altri campi del form qui -->
+    <button type="submit" class="btn btn-primary">Salva</button>
+</form>
+{% endblock %}

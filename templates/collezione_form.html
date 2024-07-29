@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} - Minerali Catalog{% endblock %}
+{% block content %}
+<h1 class="mb-4">{{ title }}</h1>
+<form method="POST">
+    {{ form.hidden_tag() }}
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            {{ form.codice.label(class="form-label") }}
+            {{ form.codice(class="form-control") }}
+        </div>
+        <div class="col-md-6 mb-3">
+            {{ form.specie.label(class="form-label") }}
+            {{ form.specie(class="form-select") }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            {{ form.varieta.label(class="form-label") }}
+            {{ form.varieta(class="form-control") }}
+        </div>
+        <div class="col-md-6 mb-3">
+            {{ form.posizione.label(class="form-label") }}
+            {{ form.posizione(class="form-control") }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            {{ form.alias.label(class="form-label") }}
+            {{ form.alias(class="form-control") }}
+        </div>
+        <div class="col-md-6 mb-3">
+            {{ form.associazione.label(class="form-label") }}
+            {{ form.associazione(class="form-control") }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            {{ form.cod_loc.label(class="form-label") }}
+            {{ form.cod_loc(class="form-control") }}
+        </div>
+        <div class="col-md-6 mb-3">
+            {{ form.dimensionamento.label(class="form-label") }}
+            {{ form.dimensionamento(class="form-control") }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            {{ form.qualita.label(class="form-label") }}
+            {{ form.qualita(class="form-control") }}
+        </div>
+        <div class="col-md-6 mb-3">
+            {{ form.data_ins.label(class="form-label") }}
+            {{ form.data_ins(class="form-control", type="date") }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            {{ form.data_acq.label(class="form-label") }}
+            {{ form.data_acq(class="form-control", type="date") }}
+        </div>
+        <div class="col-md-6 mb-3">
+            {{ form.mod_acq.label(class="form-label") }}
+            {{ form.mod_acq(class="form-control") }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            {{ form.acquisito_da.label(class="form-label") }}
+            {{ form.acquisito_da(class="form-control") }}
+        </div>
+        <div class="col-md-6 mb-3">
+            {{ form.costo.label(class="form-label") }}
+            {{ form.costo(class="form-control", type="number", step="0.01") }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            {{ form.luogo_acq.label(class="form-label") }}
+            {{ form.luogo_acq(class="form-control") }}
+        </div>
+        <div class="col-md-6 mb-3">
+            {{ form.scambiato_per.label(class="form-label") }}
+            {{ form.scambiato_per(class="form-control") }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            {{ form.fluor_lw.label(class="form-label") }}
+            {{ form.fluor_lw(class="form-control") }}
+        </div>
+        <div class="col-md-4 mb-3">
+            {{ form.fluor_sw.label(class="form-label") }}
+            {{ form.fluor_sw(class="form-control") }}
+        </div>
+        <div class="col-md-4 mb-3">
+            {{ form.radioattivo.label(class="form-label") }}
+            {{ form.radioattivo(class="form-control") }}
+        </div>
+    </div>
+    <div class="mb-3">
+        {{ form.tl.label(class="form-check-label") }}
+        {{ form.tl(class="form-check-input") }}
+    </div>
+    <div class="mb-3">
+        {{ form.note.label(class="form-label") }}
+        {{ form.note(class="form-control", rows="3") }}
+    </div>
+    <div class="mb-3">
+        {{ form.referenza.label(class="form-label") }}
+        {{ form.referenza(class="form-control") }}
+    </div>
+    <div class="mb-3">
+        {{ form.descrizione.label(class="form-label") }}
+        {{ form.descrizione(class="form-control", rows="3") }}
+    </div>
+    <button type="submit" class="btn btn-primary">Salva</button>
+    <a href="{{ url_for('collezione') }}" class="btn btn-secondary">Annulla</a>
+</form>
+{% endblock %}

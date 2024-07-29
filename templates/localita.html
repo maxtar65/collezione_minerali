@@ -1,25 +1,39 @@
 {% extends "base.html" %}
 {% block title %}Località - Minerali Catalog{% endblock %}
 {% block content %}
-<h1>Località</h1>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Codice Località</th>
-            <th>Cava/Miniera</th>
-            <th>Nazione</th>
-            <th>Codice Mindat</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for item in items %}
-        <tr>
-            <td>{{ item.cod_loc }}</td>
-            <td>{{ item.cava_min }}</td>
-            <td>{{ item.nazione }}</td>
-            <td>{{ item.cod_mindat }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<h1 class="mb-4">Località Mineralogiche</h1>
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    {% for item in items %}
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">{{ item.cava_min }}</h5>
+                <h6 class="card-subtitle mb-2 text-muted">Codice: {{ item.cod_loc }}</h6>
+                <p class="card-text">
+                    <strong>Località:</strong> {{ item.loc_monte or 'N/A' }}<br>
+                    <strong>Valle:</strong> {{ item.valle or 'N/A' }}<br>
+                    <strong>Comune:</strong> {{ item.comune or 'N/A' }}<br>
+                    <strong>Distretto/Prefettura:</strong> {{ item.distr_pref or 'N/A' }}<br>
+                    <strong>Provincia:</strong> {{ item.provincia or 'N/A' }}<br>
+                    <strong>Regione:</strong> {{ item.regione or 'N/A' }}<br>
+                    <strong>Dipartimento:</strong> {{ item.dipartimento or 'N/A' }}<br>
+                    <strong>Stato:</strong> {{ item.stato or 'N/A' }}<br>
+                    <strong>Nazione:</strong> {{ item.nazione or 'N/A' }}<br>
+                    <strong>Codice Mindat:</strong> {{ item.cod_mindat or 'N/A' }}
+                </p>
+            </div>
+            <div class="card-footer">
+                <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#note{{ item.id }}" aria-expanded="false" aria-controls="note{{ item.id }}">
+                    Mostra note
+                </button>
+                <div class="collapse mt-3" id="note{{ item.id }}">
+                    <div class="card card-body">
+                        <strong>Note:</strong> {{ item.note or 'Nessuna nota' }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
 {% endblock %}
