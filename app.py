@@ -1,15 +1,22 @@
-from flask import Flask, render_template, redirect, url_for, request, flash
+from flask import Flask, jsonify, render_template, redirect, url_for, request, flash
 from models import db, Collezione, Localita, Specie
 from forms import CollezioneForm, LocalitaForm, SearchForm, SpecieForm
 from settings import DATABASE_PATH
-from sqlalchemy import or_
-import os
+from sqlalchemy import func
+from flask_caching import Cache
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DATABASE_PATH}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'SECRET_KEY'
 db.init_app(app)
+
+cache = Cache(app, config={'CACHE_TYPE': 'simple'})
+
+@app.context_processor
+def inject_specie_valide():
+    specie_valide_count = db.session.query(func.count(func.distinct(Collezione.specie_id))).filter(Collezione.specie_id.isnot(None)).scalar()
+    return {'specie_valide': specie_valide_count}
 
 @app.route('/')
 def index():
@@ -18,21 +25,33 @@ def index():
 @app.route('/collezione', methods=['GET', 'POST'])
 def collezione():
     search_form = SearchForm(request.form)
+    page = request.args.get('page', 1, type=int)
     query = Collezione.query
 
     if request.method == 'POST' and search_form.validate():
-        search_term = search_form.search.data
-        query = query.filter(or_(
-            Collezione.codice.ilike(f'%{search_term}%'),
-            Collezione.specie_nome.ilike(f'%{search_term}%'),
-            Collezione.varieta.ilike(f'%{search_term}%'),
-            Collezione.cod_loc.ilike(f'%{search_term}%'),
-            Collezione.qualita.ilike(f'%{search_term}%'),
-            # Aggiungi qui altri campi su cui vuoi effettuare la ricerca
-        ))
+        specie_search = search_form.specie.data
+        localita_search = search_form.localita.data
+        
+        if specie_search:
+            query = query.filter(Collezione.specie_nome.ilike(f'%{specie_search}%'))
+        
+        if localita_search:
+            query = query.filter(Collezione.cod_loc.ilike(f'%{localita_search}%'))
 
-    items = query.all()
-    return render_template('collezione.html', items=items, search_form=search_form)
+    # Paginazione
+    pagination = query.order_by(Collezione.codice.desc()).paginate(page=page, per_page=10, error_out=False)
+    items = pagination.items
+
+    # Calcolo delle statistiche
+    total_campioni = query.count()
+    specie_non_valide = db.session.query(func.count(func.distinct(Collezione.specie_nome))).filter(Collezione.specie_id.is_(None)).scalar()
+
+    return render_template('collezione.html', 
+                           items=items, 
+                           search_form=search_form,
+                           pagination=pagination,
+                           total_campioni=total_campioni,
+                           specie_non_valide=specie_non_valide)
 
 @app.route('/localita')
 def localita():
@@ -41,13 +60,38 @@ def localita():
 
 @app.route('/specie')
 def specie():
-    specie_list = Specie.query.all()
-    return render_template('specie.html', specie_list=specie_list)
+    page = request.args.get('page', 1, type=int)
+    per_page = 15
+
+    # Esegui la paginazione e calcola campioni_count
+    specie_pagination = db.session.query(
+        Specie,
+        func.count(Collezione.id).label('campioni_count')
+    ).outerjoin(Collezione).group_by(Specie.id).paginate(page=page, per_page=per_page, error_out=False)
+
+    total_specie = Specie.query.count()
+
+    # Conteggio delle specie in collezione (con almeno un campione)
+    specie_in_collezione = db.session.query(
+        func.count(func.distinct(Specie.id))
+    ).join(Collezione).filter(Collezione.specie_id.isnot(None)).scalar()
+
+    specie_list = specie_pagination.items
+
+    return render_template('specie.html', 
+                           specie_list=specie_list, 
+                           pagination=specie_pagination, 
+                           total_specie=total_specie, 
+                           specie_in_collezione=specie_in_collezione)
 
 # Nuove rotte per la creazione di nuovi record
 @app.route('/collezione/new', methods=['GET', 'POST'])
 def new_collezione():
     form = CollezioneForm()
+    
+    if request.method == 'GET':
+        form.codice.data = Collezione.get_next_codice()
+    
     if form.validate_on_submit():
         collezione = Collezione()
         form.populate_obj(collezione)
@@ -55,6 +99,7 @@ def new_collezione():
         db.session.commit()
         flash('Nuovo campione aggiunto con successo!', 'success')
         return redirect(url_for('collezione'))
+    
     return render_template('collezione_form.html', form=form, title="Nuovo Campione")
 
 @app.route('/localita/new', methods=['GET', 'POST'])
@@ -130,6 +175,34 @@ def delete_collezione(id):
     db.session.commit()
     flash('Campione eliminato con successo!', 'success')
     return redirect(url_for('collezione'))
+
+@app.route('/api/specie/autocomplete')
+def specie_autocomplete():
+    query = request.args.get('query', '')
+    specie = Specie.query.filter(Specie.specie.ilike(f'%{query}%')).all()
+    return jsonify([{'id': s.id, 'name': s.specie} for s in specie])
+
+@app.route('/api/localita/autocomplete')
+def localita_autocomplete():
+    query = request.args.get('query', '')
+    localita = Localita.query.filter(Localita.cava_min.ilike(f'%{query}%')).all()
+    return jsonify([{'id': l.id, 'name': l.cava_min} for l in localita])
+
+@app.route('/api/specie')
+@cache.cached(timeout=3600)  # Cache for 1 hour
+def get_specie():
+    query = request.args.get('query', '')
+    specie_list = Specie.query.filter(Specie.specie.ilike(f'%{query}%')).all()
+    results = [{'id': specie.id, 'name': specie.specie} for specie in specie_list]
+    return jsonify(results)
+
+@app.route('/api/localita')
+@cache.cached(timeout=3600)  # Cache for 1 hour
+def get_localita():
+    query = request.args.get('query', '')
+    localita_list = Localita.query.filter(Localita.nome.ilike(f'%{query}%')).all()
+    results = [{'id': localita.id, 'name': localita.nome} for localita in localita_list]
+    return jsonify(results)
 
 if __name__ == '__main__':
     app.run(debug=True)

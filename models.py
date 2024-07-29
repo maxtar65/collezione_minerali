@@ -1,5 +1,7 @@
+import re
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy_serializer import SerializerMixin
+from sqlalchemy import func
 
 db = SQLAlchemy()
 
@@ -43,6 +45,11 @@ class Collezione(db.Model, SerializerMixin):
             'cod_loc': self.cod_loc,
             'qualita': self.qualita
         }
+    
+    @staticmethod
+    def get_next_codice():
+        max_codice = db.session.query(func.max(Collezione.codice)).scalar()
+        return (max_codice or 0) + 1
 
 class Localita(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -93,6 +100,20 @@ class Specie(db.Model, SerializerMixin):
             'sottoclasse': self.sottoclasse,
             'classe': self.classe
         }
+    
+    @property
+    def formatted_formula(self):
+        if self.formula:
+            return self.formattazione_formula(self.formula)
+        return ""
+
+    @staticmethod
+    def formattazione_formula(formula):
+        # Formatta le valenze e le cariche come apici
+        formula = re.sub(r'(\d+)([+-])', r'<sup>\1\2</sup>', formula)
+        # Formatta i numeri di atomi come pedici
+        formula = re.sub(r'(?<!<sup>)(?<!·)(\d+)(?!<)', r'<sub>\1</sub>', formula)
+        return formula
 
 def create_database():
     db.create_all()

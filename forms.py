@@ -61,5 +61,6 @@ class SpecieForm(FlaskForm):
     classe = StringField('Classe')
 
 class SearchForm(FlaskForm):
-    search = StringField('Cerca')
+    specie = StringField('Specie')
+    localita = StringField('Località')
     submit = SubmitField('Cerca')

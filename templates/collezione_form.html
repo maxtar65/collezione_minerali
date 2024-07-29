@@ -1,5 +1,10 @@
 {% extends "base.html" %}
-{% block title %}{{ title }} - Minerali Catalog{% endblock %}
+{% block title %}{{ title }} Catalogo minerali{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+{% endblock %}
+
 {% block content %}
 <h1 class="mb-4">{{ title }}</h1>
 <form method="POST">
@@ -7,7 +12,7 @@
     <div class="row">
         <div class="col-md-6 mb-3">
             {{ form.codice.label(class="form-label") }}
-            {{ form.codice(class="form-control") }}
+            {{ form.codice(class="form-control", readonly=true) }}
         </div>
         <div class="col-md-6 mb-3">
             {{ form.specie.label(class="form-label") }}
@@ -115,6 +120,12 @@
         {{ form.descrizione(class="form-control", rows="3") }}
     </div>
     <button type="submit" class="btn btn-primary">Salva</button>
-    <a href="{{ url_for('collezione') }}" class="btn btn-secondary">Annulla</a>
+    <a href="{{ url_for('collezione') }}" class="btn btn-success">Annulla</a>
 </form>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="{{ url_for('static', filename='js/collezione_form.js') }}"></script>
 {% endblock %}

@@ -2,42 +2,60 @@
 {% block title %}Specie - Minerali Catalog{% endblock %}
 {% block content %}
 <h1 class="mb-4">Specie Mineralogiche</h1>
-<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-    {% for specie in specie_list %}
-    <div class="col">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">{{ specie.specie }}</h5>
-                <h6 class="card-subtitle mb-2 text-muted">{{ specie.formula }}</h6>
-                <p class="card-text">
-                    <strong>Sistema cristallino:</strong> {{ specie.sistema_xx }}<br>
-                    <strong>Status:</strong> {{ specie.status }}<br>
-                    <strong>Gruppo:</strong> {{ specie.gruppo }}<br>
-                    <strong>Sottogruppo:</strong> {{ specie.sottogruppo }}<br>
-                    <strong>Supergruppo:</strong> {{ specie.supergruppo }}<br>
-                    <strong>Famiglia:</strong> {{ specie.famiglia }}<br>
-                    <strong>Sottoclasse:</strong> {{ specie.sottoclasse }}<br>
-                    <strong>Classe:</strong> {{ specie.classe }}
-                </p>
-            </div>
-            <div class="card-footer">
-                <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#campioni{{ specie.id }}" aria-expanded="false" aria-controls="campioni{{ specie.id }}">
-                    Campioni in collezione ({{ specie.campioni_count }})
-                </button>
-                <div class="collapse mt-3" id="campioni{{ specie.id }}">
-                    <ul class="list-group">
-                        {% for campione in specie.campioni %}
-                        <li class="list-group-item">
-                            Codice: {{ campione.codice }} - Località: {{ campione.cod_loc }}
-                        </li>
-                        {% else %}
-                        <li class="list-group-item">Nessun campione in collezione</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
+
+<!-- Informazioni sul numero totale di specie e specie in collezione -->
+<p>Numero totale di specie: {{ total_specie }}</p>
+<p>Numero di specie in collezione: {{ specie_in_collezione }}</p>
+
+<div class="list-group">
+    {% for specie, campioni_count in specie_list %}
+    <div class="list-group-item">
+        <h5 class="mb-1">{{ specie.specie }}</h5>
+        <h6 class="text-muted">{{ specie.formatted_formula|safe }}</h6>
+        <p class="mb-1">
+            <strong>Sistema cristallino:</strong> {{ specie.sistema_xx }}<br>
+            <strong>Status:</strong> {{ specie.status }}<br>
+            <strong>Gruppo:</strong> {{ specie.gruppo }}<br>
+            <strong>Sottogruppo:</strong> {{ specie.sottogruppo }}<br>
+            <strong>Supergruppo:</strong> {{ specie.supergruppo }}<br>
+            <strong>Famiglia:</strong> {{ specie.famiglia }}<br>
+            <strong>Sottoclasse:</strong> {{ specie.sottoclasse }}<br>
+            <strong>Classe:</strong> {{ specie.classe }}
+        </p>
+        <button class="btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#campioni{{ specie.id }}" aria-expanded="false" aria-controls="campioni{{ specie.id }}">
+            Campioni in collezione ({{ campioni_count }})
+        </button>
+        <div class="collapse mt-2" id="campioni{{ specie.id }}">
+            <ul class="list-group list-group-flush">
+                {% for campione in specie.campioni %}
+                <li class="list-group-item">
+                    Codice: {{ campione.codice }} - Località: {{ campione.cod_loc }}
+                </li>
+                {% else %}
+                <li class="list-group-item">Nessun campione in collezione</li>
+                {% endfor %}
+            </ul>
         </div>
     </div>
     {% endfor %}
 </div>
+
+<!-- Paginazione -->
+{% if pagination %}
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        {% for page in pagination.iter_pages() %}
+            {% if page %}
+                {% if page != pagination.page %}
+                    <li class="page-item"><a class="page-link" href="{{ url_for('specie', page=page) }}">{{ page }}</a></li>
+                {% else %}
+                    <li class="page-item active"><span class="page-link">{{ page }}</span></li>
+                {% endif %}
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+</nav>
+{% endif %}
 {% endblock %}
