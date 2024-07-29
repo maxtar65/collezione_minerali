@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, FloatField, DateField, BooleanField, SubmitField, TextAreaField, SelectField
 from wtforms.validators import DataRequired, Optional
-from models import Specie
+from models import Specie, SistemaXX
 
 class CollezioneForm(FlaskForm):
     codice = IntegerField('Codice', validators=[DataRequired()])
@@ -52,7 +52,7 @@ class LocalitaForm(FlaskForm):
 class SpecieForm(FlaskForm):
     specie = StringField('Specie', validators=[DataRequired()])
     formula = StringField('Formula')
-    sistema_xx = StringField('Sistema Cristallino')
+    sistema_xx = SelectField('Sistema Cristallino', coerce=int)
     status = StringField('Status')
     sottogruppo = StringField('Sottogruppo')
     gruppo = StringField('Gruppo')
@@ -61,6 +61,10 @@ class SpecieForm(FlaskForm):
     sottoclasse = StringField('Sottoclasse')
     classe = StringField('Classe')
     submit = SubmitField('Salva')
+
+    def __init__(self, *args, **kwargs):
+        super(SpecieForm, self).__init__(*args, **kwargs)
+        self.sistema_xx.choices = [(s.id, s.nome) for s in SistemaXX.query.order_by(SistemaXX.nome).all()]
 
 class SearchForm(FlaskForm):
     specie = StringField('Specie')

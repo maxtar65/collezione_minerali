@@ -5,17 +5,26 @@ from sqlalchemy import func
 
 db = SQLAlchemy()
 
+class SistemaXX(db.Model, SerializerMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String(50), unique=True, nullable=False)
+    
+    specie = db.relationship('Specie', back_populates='sistema_xx_rel')
+
+    def __repr__(self):
+        return self.nome
+
 class Collezione(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     codice = db.Column(db.Integer, unique=True, nullable=False)
     posizione = db.Column(db.String(50))
-    specie_id = db.Column(db.Integer, db.ForeignKey('specie.id'), nullable=True)
+    specie_id = db.Column(db.Integer, db.ForeignKey('specie.id', name='fk_collezione_specie'), nullable=True)
     specie_nome = db.Column(db.String(100))
     specie_non_valida = db.Column(db.String(100))
     varieta = db.Column(db.String(100))
     alias = db.Column(db.String(100))
     associazione = db.Column(db.String(100))
-    cod_loc = db.Column(db.String(30), db.ForeignKey('localita.cod_loc'))
+    cod_loc = db.Column(db.String(30), db.ForeignKey('localita.cod_loc', name='fk_collezione_localita'))
     dimensionamento = db.Column(db.String(50))
     qualita = db.Column(db.String(10))
     data_ins = db.Column(db.Date)
@@ -74,7 +83,8 @@ class Specie(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     specie = db.Column(db.String(100), unique=True, nullable=False)
     formula = db.Column(db.String(255))
-    sistema_xx = db.Column(db.String(50))
+    sistema_xx = db.Column(db.String(50))  # Manteniamo temporaneamente questa colonna
+    sistema_xx_id = db.Column(db.Integer, db.ForeignKey('sistema_xx.id', name='fk_specie_sistema_xx'))
     status = db.Column(db.String(50))
     sottogruppo = db.Column(db.String(50))
     gruppo = db.Column(db.String(100))
@@ -83,15 +93,16 @@ class Specie(db.Model, SerializerMixin):
     sottoclasse = db.Column(db.String(100))
     classe = db.Column(db.String(100))
 
+    sistema_xx_rel = db.relationship('SistemaXX', back_populates='specie')
     campioni = db.relationship('Collezione', back_populates='specie_rel', lazy='dynamic')
-    serialize_rules = ('-campioni',)
+    serialize_rules = ('-campioni', '-sistema_xx_rel')
 
     def to_dict(self):
         return {
             'id': self.id,
             'specie': self.specie,
             'formula': self.formula,
-            'sistema_xx': self.sistema_xx,
+            'sistema_xx': self.sistema_xx_rel.nome if self.sistema_xx_rel else self.sistema_xx,
             'status': self.status,
             'sottogruppo': self.sottogruppo,
             'gruppo': self.gruppo,
@@ -115,5 +126,27 @@ class Specie(db.Model, SerializerMixin):
         formula = re.sub(r'(?<!<sup>)(?<!·)(\d+)(?!<)', r'<sub>\1</sub>', formula)
         return formula
 
+def migrate_sistema_xx():
+    # Crea nuove istanze di SistemaXX dai dati esistenti
+    sistemi_unici = db.session.query(Specie.sistema_xx).distinct().all()
+    for (sistema,) in sistemi_unici:
+        if sistema:
+            esistente = SistemaXX.query.filter_by(nome=sistema).first()
+            if not esistente:
+                nuovo_sistema = SistemaXX(nome=sistema)
+                db.session.add(nuovo_sistema)
+    db.session.commit()
+    
+    # Aggiorna le relazioni nelle specie esistenti
+    for specie in Specie.query.all():
+        if specie.sistema_xx:
+            sistema = SistemaXX.query.filter_by(nome=specie.sistema_xx).first()
+            if sistema:
+                specie.sistema_xx_id = sistema.id
+    
+    db.session.commit()
+    print("Migrazione dei dati del sistema cristallino completata.")
+
 def create_database():
     db.create_all()
+    migrate_sistema_xx()

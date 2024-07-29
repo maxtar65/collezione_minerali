@@ -1,9 +1,12 @@
 from flask import Flask, jsonify, render_template, redirect, url_for, request, flash
-from models import db, Collezione, Localita, Specie
+from models import db, Collezione, Localita, Specie, SistemaXX, migrate_sistema_xx
 from forms import CollezioneForm, LocalitaForm, SearchForm, SpecieForm
 from settings import DATABASE_PATH
 from sqlalchemy import func
 from flask_caching import Cache
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+import os
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DATABASE_PATH}'
@@ -11,7 +14,15 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'SECRET_KEY'
 db.init_app(app)
 
+migrate = Migrate(app, db)
+
 cache = Cache(app, config={'CACHE_TYPE': 'simple'})
+
+@app.cli.command("migrate-sistema-xx")
+def migrate_sistema_xx_command():
+    """Migra i dati del sistema cristallino alla nuova tabella."""
+    migrate_sistema_xx()
+    print("Migrazione dei dati del sistema cristallino completata.")
 
 @app.context_processor
 def inject_specie_valide():
@@ -133,6 +144,7 @@ def new_specie():
     if form.validate_on_submit():
         specie = Specie()
         form.populate_obj(specie)
+        specie.sistema_xx_rel = SistemaXX.query.get(form.sistema_xx.data)
         db.session.add(specie)
         db.session.commit()
         flash('Nuova specie aggiunta con successo!', 'success')
@@ -174,8 +186,11 @@ def edit_localita(id):
 def edit_specie(id):
     specie = Specie.query.get_or_404(id)
     form = SpecieForm(obj=specie)
+    if request.method == 'GET':
+        form.sistema_xx.data = specie.sistema_xx_rel.id if specie.sistema_xx_rel else None
     if form.validate_on_submit():
         form.populate_obj(specie)
+        specie.sistema_xx_rel = SistemaXX.query.get(form.sistema_xx.data)
         db.session.commit()
         flash('Specie aggiornata con successo!', 'success')
         return redirect(url_for('specie'))
