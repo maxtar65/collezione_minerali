@@ -1,17 +1,27 @@
 {% extends "base.html" %}
 {% block title %}Specie - Minerali Catalog{% endblock %}
 {% block content %}
+
 <h1 class="mb-4">Specie Mineralogiche</h1>
 
-<!-- Informazioni sul numero totale di specie e specie in collezione -->
-<p>Numero totale di specie: {{ total_specie }}</p>
-<p>Numero di specie in collezione: {{ specie_in_collezione }}</p>
+<div class="alert alert-info mb-4">
+    <p class="mb-0"><strong>Statistiche delle specie:</strong></p>
+    <ul class="mb-0">
+        <li>Numero totale di specie: {{ total_specie }}</li>
+        <li>Numero di specie in collezione: {{ specie_in_collezione }}</li>
+    </ul>
+</div>
+
+<a href="{{ url_for('new_specie') }}" class="btn btn-success mb-3">Aggiungi Nuova Specie</a>
 
 <div class="list-group">
     {% for specie, campioni_count in specie_list %}
     <div class="list-group-item">
-        <h5 class="mb-1">{{ specie.specie }}</h5>
-        <h6 class="text-muted">{{ specie.formatted_formula|safe }}</h6>
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-1">{{ specie.specie }}</h5>
+            <a href="{{ url_for('edit_specie', id=specie.id) }}" class="btn btn-primary btn-sm">Modifica</a>
+        </div>
+        <h6 class="mb-1 text-muted">{{ specie.formatted_formula|safe }}</h6>
         <p class="mb-1">
             <strong>Sistema cristallino:</strong> {{ specie.sistema_xx }}<br>
             <strong>Status:</strong> {{ specie.status }}<br>
@@ -22,11 +32,11 @@
             <strong>Sottoclasse:</strong> {{ specie.sottoclasse }}<br>
             <strong>Classe:</strong> {{ specie.classe }}
         </p>
-        <button class="btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#campioni{{ specie.id }}" aria-expanded="false" aria-controls="campioni{{ specie.id }}">
+        <button class="btn btn-secondary btn-sm mt-2" type="button" data-bs-toggle="collapse" data-bs-target="#campioni{{ specie.id }}" aria-expanded="false" aria-controls="campioni{{ specie.id }}">
             Campioni in collezione ({{ campioni_count }})
         </button>
         <div class="collapse mt-2" id="campioni{{ specie.id }}">
-            <ul class="list-group list-group-flush">
+            <ul class="list-group">
                 {% for campione in specie.campioni %}
                 <li class="list-group-item">
                     Codice: {{ campione.codice }} - Località: {{ campione.cod_loc }}
@@ -40,9 +50,8 @@
     {% endfor %}
 </div>
 
-<!-- Paginazione -->
 {% if pagination %}
-<nav aria-label="Page navigation">
+<nav aria-label="Page navigation" class="mt-4">
     <ul class="pagination justify-content-center">
         {% for page in pagination.iter_pages() %}
             {% if page %}
@@ -58,4 +67,5 @@
     </ul>
 </nav>
 {% endif %}
+
 {% endblock %}

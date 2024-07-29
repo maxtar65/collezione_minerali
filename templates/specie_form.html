@@ -2,7 +2,7 @@
 {% block title %}{{ title }} - Minerali Catalog{% endblock %}
 {% block content %}
 <h1 class="mb-4">{{ title }}</h1>
-<form method="POST">
+<form method="POST" id="specieForm">
     {{ form.hidden_tag() }}
     <div class="mb-3">
         {{ form.specie.label(class="form-label") }}
@@ -12,7 +12,72 @@
         {{ form.formula.label(class="form-label") }}
         {{ form.formula(class="form-control") }}
     </div>
-    <!-- Aggiungi gli altri campi del form qui -->
-    <button type="submit" class="btn btn-primary">Salva</button>
+    <div class="mb-3">
+        {{ form.sistema_xx.label(class="form-label") }}
+        {{ form.sistema_xx(class="form-control") }}
+    </div>
+    <div class="mb-3">
+        {{ form.status.label(class="form-label") }}
+        {{ form.status(class="form-control") }}
+    </div>
+    <div class="mb-3">
+        {{ form.sottogruppo.label(class="form-label") }}
+        {{ form.sottogruppo(class="form-control") }}
+    </div>
+    <div class="mb-3">
+        {{ form.gruppo.label(class="form-label") }}
+        {{ form.gruppo(class="form-control") }}
+    </div>
+    <div class="mb-3">
+        {{ form.supergruppo.label(class="form-label") }}
+        {{ form.supergruppo(class="form-control") }}
+    </div>
+    <div class="mb-3">
+        {{ form.famiglia.label(class="form-label") }}
+        {{ form.famiglia(class="form-control") }}
+    </div>
+    <div class="mb-3">
+        {{ form.sottoclasse.label(class="form-label") }}
+        {{ form.sottoclasse(class="form-control") }}
+    </div>
+    <div class="mb-3">
+        {{ form.classe.label(class="form-label") }}
+        {{ form.classe(class="form-control") }}
+    </div>
+    <button type="button" class="btn btn-primary" onclick="confirmSave()">Salva</button>
+    <a href="{{ url_for('specie') }}" class="btn btn-secondary">Annulla</a>
 </form>
+
+<!-- Modal di conferma -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">Conferma Salvataggio</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Sei sicuro di voler salvare le modifiche?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <button type="button" class="btn btn-primary" onclick="submitForm()">Conferma</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+function confirmSave() {
+    var modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    modal.show();
+}
+
+function submitForm() {
+    document.getElementById('specieForm').submit();
+}
+</script>
 {% endblock %}

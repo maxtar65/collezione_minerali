@@ -47,6 +47,7 @@ class LocalitaForm(FlaskForm):
     nazione = StringField('Nazione')
     note = TextAreaField('Note')
     cod_mindat = IntegerField('Codice Mindat', validators=[Optional()])
+    submit = SubmitField('Salva')
 
 class SpecieForm(FlaskForm):
     specie = StringField('Specie', validators=[DataRequired()])
@@ -59,6 +60,7 @@ class SpecieForm(FlaskForm):
     famiglia = StringField('Famiglia')
     sottoclasse = StringField('Sottoclasse')
     classe = StringField('Classe')
+    submit = SubmitField('Salva')
 
 class SearchForm(FlaskForm):
     specie = StringField('Specie')

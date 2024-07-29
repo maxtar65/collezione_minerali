@@ -22,21 +22,19 @@ def inject_specie_valide():
 def index():
     return render_template('index.html')
 
-@app.route('/collezione', methods=['GET', 'POST'])
+@app.route('/collezione', methods=['GET'])
 def collezione():
-    search_form = SearchForm(request.form)
     page = request.args.get('page', 1, type=int)
+    specie_search = request.args.get('specie-search', '')
+    localita_search = request.args.get('localita-search', '')
+
     query = Collezione.query
 
-    if request.method == 'POST' and search_form.validate():
-        specie_search = search_form.specie.data
-        localita_search = search_form.localita.data
-        
-        if specie_search:
-            query = query.filter(Collezione.specie_nome.ilike(f'%{specie_search}%'))
-        
-        if localita_search:
-            query = query.filter(Collezione.cod_loc.ilike(f'%{localita_search}%'))
+    if specie_search:
+        query = query.filter(Collezione.specie_nome.ilike(f'%{specie_search}%'))
+    
+    if localita_search:
+        query = query.filter(Collezione.cod_loc.ilike(f'%{localita_search}%'))
 
     # Paginazione
     pagination = query.order_by(Collezione.codice.desc()).paginate(page=page, per_page=10, error_out=False)
@@ -44,19 +42,34 @@ def collezione():
 
     # Calcolo delle statistiche
     total_campioni = query.count()
+    specie_valide = db.session.query(func.count(func.distinct(Collezione.specie_id))).filter(Collezione.specie_id.isnot(None)).scalar()
     specie_non_valide = db.session.query(func.count(func.distinct(Collezione.specie_nome))).filter(Collezione.specie_id.is_(None)).scalar()
 
     return render_template('collezione.html', 
                            items=items, 
-                           search_form=search_form,
                            pagination=pagination,
                            total_campioni=total_campioni,
-                           specie_non_valide=specie_non_valide)
+                           specie_valide=specie_valide,
+                           specie_non_valide=specie_non_valide,
+                           specie_search=specie_search,
+                           localita_search=localita_search)
 
 @app.route('/localita')
 def localita():
-    items = Localita.query.all()
-    return render_template('localita.html', items=items)
+    page = request.args.get('page', 1, type=int)
+    per_page = 10  # Numero di località per pagina
+
+    pagination = Localita.query.order_by(Localita.cava_min).paginate(page=page, per_page=per_page, error_out=False)
+    items = pagination.items
+
+    total_localita = Localita.query.count()
+    localita_con_campioni = db.session.query(Localita.id).join(Collezione).group_by(Localita.id).count()
+
+    return render_template('localita.html', 
+                           items=items, 
+                           pagination=pagination,
+                           total_localita=total_localita,
+                           localita_con_campioni=localita_con_campioni)
 
 @app.route('/specie')
 def specie():

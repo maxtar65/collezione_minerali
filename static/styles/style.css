@@ -10,31 +10,33 @@
     background-color: rgba(0, 0, 0, .075);
 }
 
-.algolia-autocomplete {
-    width: 100%;
+/* formattazione autocomplete */
+.ui-autocomplete {
+    background: #f8f9fa;
+    border: 1px solid #ced4da;
+    max-height: 200px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 5px 0;
+    z-index: 1000;
 }
 
-.algolia-autocomplete .aa-input, .algolia-autocomplete .aa-hint {
-    width: 100%;
+.ui-autocomplete .ui-menu-item {
+    padding: 5px 10px;
+    font-size: 14px;
 }
 
-.algolia-autocomplete .aa-dropdown-menu {
-    width: 100%;
-    background-color: #fff;
-    border: 1px solid #999;
-    border-top: none;
+.ui-autocomplete .ui-menu-item-wrapper {
+    padding: 3px 5px;
 }
 
-.algolia-autocomplete .aa-dropdown-menu .aa-suggestion {
-    cursor: pointer;
-    padding: 5px 4px;
+.ui-autocomplete .ui-menu-item-wrapper.ui-state-active {
+    background: #007bff;
+    color: white;
+    border: none;
+    margin: 0;
 }
 
-.algolia-autocomplete .aa-dropdown-menu .aa-suggestion.aa-cursor {
-    background-color: #B2D7FF;
-}
-
-.algolia-autocomplete .aa-dropdown-menu .aa-suggestion em {
-    font-weight: bold;
-    font-style: normal;
+.ui-helper-hidden-accessible {
+    display: none;
 }

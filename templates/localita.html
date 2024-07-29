@@ -1,39 +1,69 @@
 {% extends "base.html" %}
 {% block title %}Località - Minerali Catalog{% endblock %}
 {% block content %}
+
 <h1 class="mb-4">Località Mineralogiche</h1>
-<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-    {% for item in items %}
-    <div class="col">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">{{ item.cava_min }}</h5>
-                <h6 class="card-subtitle mb-2 text-muted">Codice: {{ item.cod_loc }}</h6>
-                <p class="card-text">
-                    <strong>Località:</strong> {{ item.loc_monte or 'N/A' }}<br>
-                    <strong>Valle:</strong> {{ item.valle or 'N/A' }}<br>
-                    <strong>Comune:</strong> {{ item.comune or 'N/A' }}<br>
-                    <strong>Distretto/Prefettura:</strong> {{ item.distr_pref or 'N/A' }}<br>
-                    <strong>Provincia:</strong> {{ item.provincia or 'N/A' }}<br>
-                    <strong>Regione:</strong> {{ item.regione or 'N/A' }}<br>
-                    <strong>Dipartimento:</strong> {{ item.dipartimento or 'N/A' }}<br>
-                    <strong>Stato:</strong> {{ item.stato or 'N/A' }}<br>
-                    <strong>Nazione:</strong> {{ item.nazione or 'N/A' }}<br>
-                    <strong>Codice Mindat:</strong> {{ item.cod_mindat or 'N/A' }}
-                </p>
-            </div>
-            <div class="card-footer">
-                <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#note{{ item.id }}" aria-expanded="false" aria-controls="note{{ item.id }}">
-                    Mostra note
-                </button>
-                <div class="collapse mt-3" id="note{{ item.id }}">
-                    <div class="card card-body">
-                        <strong>Note:</strong> {{ item.note or 'Nessuna nota' }}
-                    </div>
-                </div>
-            </div>
+
+<div class="alert alert-info mb-4">
+    <p class="mb-0"><strong>Statistiche delle località:</strong></p>
+    <ul class="mb-0">
+        <li>Numero totale di località: {{ total_localita }}</li>
+        <li>Numero di località con campioni: {{ localita_con_campioni }}</li>
+    </ul>
+</div>
+
+<a href="{{ url_for('new_localita') }}" class="btn btn-success mb-3">Aggiungi Nuova Località</a>
+
+<div class="list-group">
+    {% for localita in items %}
+    <div class="list-group-item">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-1">{{ localita.cava_min }}</h5>
+            <a href="{{ url_for('edit_localita', id=localita.id) }}" class="btn btn-primary btn-sm">Modifica</a>
+        </div>
+        <p class="mb-1">
+            <strong>Codice Località:</strong> {{ localita.cod_loc }}<br>
+            <strong>Località/Monte:</strong> {{ localita.loc_monte }}<br>
+            <strong>Comune:</strong> {{ localita.comune }}<br>
+            <strong>Provincia:</strong> {{ localita.provincia }}<br>
+            <strong>Regione:</strong> {{ localita.regione }}<br>
+            <strong>Nazione:</strong> {{ localita.nazione }}<br>
+            <strong>Codice Mindat:</strong> {{ localita.cod_mindat }}
+        </p>
+        <button class="btn btn-secondary btn-sm mt-2" type="button" data-bs-toggle="collapse" data-bs-target="#campioni{{ localita.id }}" aria-expanded="false" aria-controls="campioni{{ localita.id }}">
+            Campioni in collezione ({{ localita.collezione.count() }})
+        </button>
+        <div class="collapse mt-2" id="campioni{{ localita.id }}">
+            <ul class="list-group">
+                {% for campione in localita.collezione %}
+                <li class="list-group-item">
+                    Codice: {{ campione.codice }} - Specie: {{ campione.specie_nome }}
+                </li>
+                {% else %}
+                <li class="list-group-item">Nessun campione in collezione per questa località</li>
+                {% endfor %}
+            </ul>
         </div>
     </div>
     {% endfor %}
 </div>
+
+{% if pagination %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% for page in pagination.iter_pages() %}
+            {% if page %}
+                {% if page != pagination.page %}
+                    <li class="page-item"><a class="page-link" href="{{ url_for('localita', page=page) }}">{{ page }}</a></li>
+                {% else %}
+                    <li class="page-item active"><span class="page-link">{{ page }}</span></li>
+                {% endif %}
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+</nav>
+{% endif %}
+
 {% endblock %}
