@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, IntegerField, FloatField, DateField, BooleanField, SubmitField, TextAreaField, SelectField
+from wtforms import HiddenField, StringField, IntegerField, FloatField, DateField, BooleanField, SubmitField, TextAreaField, SelectField
 from wtforms.validators import DataRequired, Optional
 from models import Specie, SistemaXX
 
@@ -50,9 +50,19 @@ class LocalitaForm(FlaskForm):
     submit = SubmitField('Salva')
 
 class SpecieForm(FlaskForm):
+    id = HiddenField('ID')
     specie = StringField('Specie', validators=[DataRequired()])
     formula = StringField('Formula')
-    sistema_xx = SelectField('Sistema Cristallino', coerce=int)
+    sistema_xx = SelectField('Sistema Cristallino', choices=[
+        ('', 'Seleziona...'),
+        ('Cubico', 'Cubico'),
+        ('Tetragonale', 'Tetragonale'),
+        ('Ortorombico', 'Ortorombico'),
+        ('Monoclino', 'Monoclino'),
+        ('Triclino', 'Triclino'),
+        ('Esagonale', 'Esagonale'),
+        ('Trigonale', 'Trigonale')
+    ])
     status = StringField('Status')
     sottogruppo = StringField('Sottogruppo')
     gruppo = StringField('Gruppo')
@@ -60,11 +70,6 @@ class SpecieForm(FlaskForm):
     famiglia = StringField('Famiglia')
     sottoclasse = StringField('Sottoclasse')
     classe = StringField('Classe')
-    submit = SubmitField('Salva')
-
-    def __init__(self, *args, **kwargs):
-        super(SpecieForm, self).__init__(*args, **kwargs)
-        self.sistema_xx.choices = [(s.id, s.nome) for s in SistemaXX.query.order_by(SistemaXX.nome).all()]
 
 class SearchForm(FlaskForm):
     specie = StringField('Specie')

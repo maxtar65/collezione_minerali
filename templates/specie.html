@@ -1,7 +1,11 @@
 {% extends "base.html" %}
 {% block title %}Specie - Minerali Catalog{% endblock %}
-{% block content %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+{% endblock %}
+
+{% block content %}
 <h1 class="mb-4">Specie Mineralogiche</h1>
 
 <div class="alert alert-info mb-4">
@@ -11,6 +15,13 @@
         <li>Numero di specie in collezione: {{ specie_in_collezione }}</li>
     </ul>
 </div>
+
+<form method="GET" class="mb-4">
+    <div class="input-group">
+        <input type="text" id="specie-search" name="search" class="form-control" placeholder="Cerca specie..." value="{{ search }}">
+        <button class="btn btn-primary" type="submit">Cerca</button>
+    </div>
+</form>
 
 <a href="{{ url_for('new_specie') }}" class="btn btn-success mb-3">Aggiungi Nuova Specie</a>
 
@@ -50,22 +61,34 @@
     {% endfor %}
 </div>
 
-{% if pagination %}
+{% if pagination.pages > 1 %}
 <nav aria-label="Page navigation" class="mt-4">
     <ul class="pagination justify-content-center">
         {% for page in pagination.iter_pages() %}
             {% if page %}
                 {% if page != pagination.page %}
-                    <li class="page-item"><a class="page-link" href="{{ url_for('specie', page=page) }}">{{ page }}</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('specie', page=page, search=search) }}">{{ page }}</a>
+                    </li>
                 {% else %}
-                    <li class="page-item active"><span class="page-link">{{ page }}</span></li>
+                    <li class="page-item active">
+                        <span class="page-link">{{ page }}</span>
+                    </li>
                 {% endif %}
             {% else %}
-                <li class="page-item disabled"><span class="page-link">...</span></li>
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
             {% endif %}
         {% endfor %}
     </ul>
 </nav>
 {% endif %}
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Se hai bisogno di JavaScript specifico per questa pagina, puoi aggiungerlo qui
+</script>
 {% endblock %}

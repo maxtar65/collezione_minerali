@@ -2,7 +2,7 @@ from flask import Flask, jsonify, render_template, redirect, url_for, request, f
 from models import db, Collezione, Localita, Specie, SistemaXX, migrate_sistema_xx
 from forms import CollezioneForm, LocalitaForm, SearchForm, SpecieForm
 from settings import DATABASE_PATH
-from sqlalchemy import func, or_, event
+from sqlalchemy import func, or_
 from flask_caching import Cache
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -15,7 +15,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'SECRET_KEY'
 db.init_app(app)
 
-# migrate = Migrate(app, db)
+migrate = Migrate(app, db)
 
 cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 
@@ -24,20 +24,6 @@ cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 #     """Migra i dati del sistema cristallino alla nuova tabella."""
 #     migrate_sistema_xx()
 #     print("Migrazione dei dati del sistema cristallino completata.")
-
-def normalize_text(text):
-    return ''.join(
-        c for c in unicodedata.normalize('NFD', text)
-        if unicodedata.category(c) != 'Mn'
-    )
-
-# Registra la funzione con SQLite
-def sqlite_unaccent(text):
-    return normalize_text(text)
-
-# Registrazione della funzione unaccent
-with app.app_context():
-    event.listen(db.engine, 'connect', lambda conn, rec: conn.create_function('unaccent', 1, sqlite_unaccent))
 
 @app.context_processor
 def inject_specie_valide():
@@ -245,8 +231,7 @@ def specie_autocomplete():
 def localita_autocomplete():
     query = request.args.get('query', '')
     localita = Localita.query.filter(func.lower(func.unaccent(Localita.cava_min)).ilike(f'%{normalize_text(query).lower()}%')).all()
-    results = [{'id': l.id, 'name': l.cava_min} for l in localita]
-    return jsonify(results)
+    return jsonify([{'id': l.id, 'name': l.cava_min} for l in localita])
 
 @app.route('/api/specie')
 @cache.cached(timeout=3600)  # Cache for 1 hour

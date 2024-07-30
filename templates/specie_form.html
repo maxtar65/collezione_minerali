@@ -2,8 +2,9 @@
 {% block title %}{{ title }} - Minerali Catalog{% endblock %}
 {% block content %}
 <h1 class="mb-4">{{ title }}</h1>
-<form method="POST" id="specieForm">
+<form method="POST" action="{{ url_for('edit_specie', id=form.id.data) if form.id.data else url_for('new_specie') }}">
     {{ form.hidden_tag() }}
+    {{ form.id() }}
     <div class="mb-3">
         {{ form.specie.label(class="form-label") }}
         {{ form.specie(class="form-control") }}
@@ -44,40 +45,7 @@
         {{ form.classe.label(class="form-label") }}
         {{ form.classe(class="form-control") }}
     </div>
-    <button type="button" class="btn btn-primary" onclick="confirmSave()">Salva</button>
+    <button type="submit" class="btn btn-primary">Salva</button>
     <a href="{{ url_for('specie') }}" class="btn btn-secondary">Annulla</a>
 </form>
-
-<!-- Modal di conferma -->
-<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="confirmModalLabel">Conferma Salvataggio</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Sei sicuro di voler salvare le modifiche?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-                <button type="button" class="btn btn-primary" onclick="submitForm()">Conferma</button>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block scripts %}
-{{ super() }}
-<script>
-function confirmSave() {
-    var modal = new bootstrap.Modal(document.getElementById('confirmModal'));
-    modal.show();
-}
-
-function submitForm() {
-    document.getElementById('specieForm').submit();
-}
-</script>
 {% endblock %}
