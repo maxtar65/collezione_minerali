@@ -264,5 +264,9 @@ def get_localita():
     results = [{'id': localita.id, 'name': localita.nome} for localita in localita_list]
     return jsonify(results)
 
+@app.route('/tavola_periodica')
+def tavola_periodica():
+    return render_template('tavola_periodica.html')
+
 if __name__ == '__main__':
     app.run(debug=True)
