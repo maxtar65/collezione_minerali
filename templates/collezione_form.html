@@ -18,6 +18,10 @@
             {{ form.specie.label(class="form-label") }}
             {{ form.specie(class="form-select") }}
         </div>
+        <div class="col-md-6 mb-3">
+            {{ form.specie_non_valida.label(class="form-label") }}
+            {{ form.specie_non_valida(class="form-control", placeholder="Inserisci specie non valida se non presente in elenco") }}
+        </div>
     </div>
     <div class="row">
         <div class="col-md-6 mb-3">

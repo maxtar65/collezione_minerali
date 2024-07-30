@@ -151,6 +151,20 @@ def new_collezione():
     if form.validate_on_submit():
         collezione = Collezione()
         form.populate_obj(collezione)
+        
+        # Gestione di specie valida o non valida
+        if form.specie_non_valida.data:
+            # Se è stata inserita una specie non valida, non associare specie_id
+            collezione.specie_id = None
+            collezione.specie_nome = form.specie_non_valida.data
+            collezione.specie_non_valida = form.specie_non_valida.data
+        else:
+            # Cerca la specie valida nel database
+            specie = Specie.query.get(form.specie.data)
+            if specie:
+                collezione.specie_id = specie.id
+                collezione.specie_nome = specie.specie
+        
         db.session.add(collezione)
         db.session.commit()
         flash('Nuovo campione aggiunto con successo!', 'success')
