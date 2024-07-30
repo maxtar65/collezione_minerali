@@ -5,7 +5,7 @@
 <h1 class="mb-4">Località Mineralogiche</h1>
 
 <div class="alert alert-info mb-4">
-    <p class="mb-0"><strong>Statistiche delle località:</strong></p>
+    <strong>Statistiche delle località:</strong>
     <ul class="mb-0">
         <li>Numero totale di località: {{ total_localita }}</li>
         <li>Numero di località con campioni: {{ localita_con_campioni }}</li>
@@ -17,8 +17,19 @@
 <div class="list-group">
     {% for localita in items %}
     <div class="list-group-item">
-        <div class="d-flex justify-content-between align-items-center">
-            <h5 class="mb-1">{{ localita.cava_min }}</h5>
+        <p class="mb-1">
+            <h5><strong>Località:</strong> {{ localita.loc_monte }}<br></h5>
+            <strong>Codice:</strong> {{ localita.cod_loc }}<br>
+            <strong>Comune:</strong> {{ localita.comune }}<br>
+            <strong>Provincia:</strong> {{ localita.provincia }}<br>
+            <strong>Regione:</strong> {{ localita.regione }}<br>
+            <strong>Nazione:</strong> {{ localita.nazione }}<br>
+            <strong>Codice Mindat:</strong> {{ localita.cod_mindat }}
+        </p>
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <button class="btn btn-success btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#campioni{{ localita.id }}">
+                Campioni in collezione ({{ localita.collezione.count() }})
+            </button>
             <div>
                 <a href="{{ url_for('edit_localita', id=localita.id) }}" class="btn btn-primary btn-sm">Modifica</a>
                 {% if localita.cod_mindat %}
@@ -26,28 +37,16 @@
                 {% endif %}
             </div>
         </div>
-        <p class="mb-1">
-            <strong>Codice Località:</strong> {{ localita.cod_loc }}<br>
-            <strong>Località/Monte:</strong> {{ localita.loc_monte }}<br>
-            <strong>Comune:</strong> {{ localita.comune }}<br>
-            <strong>Provincia:</strong> {{ localita.provincia }}<br>
-            <strong>Regione:</strong> {{ localita.regione }}<br>
-            <strong>Nazione:</strong> {{ localita.nazione }}<br>
-            <strong>Codice Mindat:</strong> {{ localita.cod_mindat }}
-        </p>
-        <button class="btn btn-secondary btn-sm mt-2" type="button" data-bs-toggle="collapse" data-bs-target="#campioni{{ localita.id }}" aria-expanded="false" aria-controls="campioni{{ localita.id }}">
-            Campioni in collezione ({{ localita.collezione.count() }})
-        </button>
-        <div class="collapse mt-2" id="campioni{{ localita.id }}">
-            <ul class="list-group">
+        <div id="campioni{{ localita.id }}" class="collapse mt-2">
+            {% if localita.collezione.count() > 0 %}
+                <ul class="list-unstyled">
                 {% for campione in localita.collezione %}
-                <li class="list-group-item">
-                    Codice: {{ campione.codice }} - Specie: {{ campione.specie_nome }}
-                </li>
-                {% else %}
-                <li class="list-group-item">Nessun campione in collezione per questa località</li>
+                    <li>Codice: {{ campione.codice }} - Specie: {{ campione.specie_nome }}</li>
                 {% endfor %}
-            </ul>
+                </ul>
+            {% else %}
+                <p>Nessun campione in collezione per questa località</p>
+            {% endif %}
         </div>
     </div>
     {% endfor %}
@@ -58,13 +57,13 @@
     <ul class="pagination justify-content-center">
         {% for page in pagination.iter_pages() %}
             {% if page %}
-                {% if page != pagination.page %}
-                    <li class="page-item"><a class="page-link" href="{{ url_for('localita', page=page) }}">{{ page }}</a></li>
-                {% else %}
-                    <li class="page-item active"><span class="page-link">{{ page }}</span></li>
-                {% endif %}
+                <li class="page-item {{ 'active' if page == pagination.page else '' }}">
+                    <a class="page-link" href="{{ url_for('localita', page=page) }}">{{ page }}</a>
+                </li>
             {% else %}
-                <li class="page-item disabled"><span class="page-link">...</span></li>
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
             {% endif %}
         {% endfor %}
     </ul>

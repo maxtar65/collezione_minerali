@@ -164,10 +164,14 @@ def new_localita():
     if form.validate_on_submit():
         localita = Localita()
         form.populate_obj(localita)
-        db.session.add(localita)
-        db.session.commit()
-        flash('Nuova località aggiunta con successo!', 'success')
-        return redirect(url_for('localita'))
+        try:
+            db.session.add(localita)
+            db.session.commit()
+            flash('Nuova località aggiunta con successo!', 'success')
+            return redirect(url_for('localita'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Errore durante il salvataggio: {str(e)}', 'error')
     return render_template('localita_form.html', form=form, title="Nuova Località")
 
 @app.route('/specie/new', methods=['GET', 'POST'])
@@ -209,9 +213,13 @@ def edit_localita(id):
     form = LocalitaForm(obj=localita)
     if form.validate_on_submit():
         form.populate_obj(localita)
-        db.session.commit()
-        flash('Località aggiornata con successo!', 'success')
-        return redirect(url_for('localita'))
+        try:
+            db.session.commit()
+            flash('Località aggiornata con successo!', 'success')
+            return redirect(url_for('localita'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Errore durante l\'aggiornamento: {str(e)}', 'error')
     return render_template('localita_form.html', form=form, title="Modifica Località")
 
 @app.route('/specie/edit/<int:id>', methods=['GET', 'POST'])

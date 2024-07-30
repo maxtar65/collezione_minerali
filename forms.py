@@ -34,6 +34,7 @@ class CollezioneForm(FlaskForm):
         self.specie.choices = [(s.id, s.specie) for s in Specie.query.order_by(Specie.specie).all()]
 
 class LocalitaForm(FlaskForm):
+    id = HiddenField('ID')
     cod_loc = StringField('Codice Località', validators=[DataRequired()])
     cava_min = StringField('Cava/Miniera')
     loc_monte = StringField('Località/Monte')

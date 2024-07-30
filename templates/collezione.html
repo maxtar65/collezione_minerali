@@ -41,9 +41,10 @@
         <tr>
             <th>Codice</th>
             <th>Specie</th>
-            <th>Varietà</th>
-            <th>Località</th>
             <th>Qualità</th>
+            <th>TL</th>
+            <th>Località</th>
+            <th>Posizione</th>
             <th>Azioni</th>
         </tr>
     </thead>
@@ -52,9 +53,10 @@
         <tr>
             <td>{{ item.codice }}</td>
             <td>{{ item.specie_nome }}</td>
-            <td>{{ item.varieta }}</td>
-            <td>{{ item.cod_loc }}</td>
             <td>{{ item.qualita }}</td>
+            <td>{{ "Sì" if item.tl else "No" }}</td>
+            <td>{{ item.cod_loc }}</td>
+            <td>{{ item.posizione }}</td>
             <td>
                 <a href="{{ url_for('edit_collezione', id=item.id) }}" class="btn btn-sm btn-primary">Modifica</a>
                 <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ item.id }}">
