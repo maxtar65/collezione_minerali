@@ -50,7 +50,7 @@
     </thead>
     <tbody>
         {% for item in items %}
-        <tr>
+        <tr class="{% if item.specie_non_valida %}non-valida{% endif %} {% if item.tl %}tl-true{% endif %}">
             <td>{{ item.codice }}</td>
             <td>{{ item.specie_nome }}</td>
             <td>{{ item.qualita }}</td>
@@ -67,6 +67,7 @@
         {% endfor %}
     </tbody>
 </table>
+
 
 <!-- Paginazione -->
 {% if pagination.pages > 1 %}

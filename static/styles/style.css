@@ -40,3 +40,15 @@
 .ui-helper-hidden-accessible {
     display: none;
 }
+
+/* Specificità aumentata per sovrascrivere altri stili, inclusi quelli di Bootstrap */
+table.table-striped tbody tr.non-valida,
+table.table-striped tbody tr.non-valida td {
+    background-color: #dea062 !important;  /* Colore arancione */
+}
+
+/* Stile per i campioni TL = 1 */
+table.table-striped tbody tr.tl-true,
+table.table-striped tbody tr.tl-true td {
+    background-color: #ff6666 !important;  /* Colore rosso chiaro */
+}
