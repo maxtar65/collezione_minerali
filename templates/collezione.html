@@ -1,42 +1,39 @@
 {% extends "base.html" %}
 {% block title %}Collezione - Minerali Catalog{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-<link rel="stylesheet" href="{{ url_for('static', filename='styles/style.css') }}">
-{% endblock %}
-
+{% block extra_css %}{% endblock %}
 {% block content %}
+
 <h1 class="mb-4">Collezione Mineralogica</h1>
 
 <div class="alert alert-info mb-4">
-    <p class="mb-0"><strong>Statistiche della collezione:</strong></p>
-    <ul class="mb-0">
+    <strong>Statistiche della collezione:</strong>
+    <ul>
         <li>Numero totale di campioni: {{ total_campioni }}</li>
         <li>Numero di specie valide: {{ specie_valide }}</li>
         <li>Numero di specie non valide: {{ specie_non_valide }}</li>
     </ul>
 </div>
 
-<!-- Form di ricerca -->
-<form method="GET" class="mb-4">
+<form id="searchForm" class="mb-3">
     <div class="row">
-        <div class="col-md-4 mb-3">
-            <input type="text" id="specie-search" name="specie-search" class="form-control" placeholder="Cerca specie..." value="{{ specie_search }}">
+        <div class="col-md-3 mb-3">
+            <input type="text" id="specie-search" name="specie-search" class="form-control" placeholder="Cerca per specie" value="{{ specie_search }}">
         </div>
-        <div class="col-md-4 mb-3">
-            <input type="text" id="localita-search" name="localita-search" class="form-control" placeholder="Cerca località..." value="{{ localita_search }}">
+        <div class="col-md-3 mb-3">
+            <input type="text" id="localita-search" name="localita-search" class="form-control" placeholder="Cerca per località" value="{{ localita_search }}">
         </div>
-        <div class="col-md-4 mb-3">
-            <button class="btn btn-primary w-100" type="submit">Cerca</button>
+        <div class="col-md-3 mb-3">
+            <input type="text" id="codice-search" name="codice-search" class="form-control" placeholder="Cerca per codice" value="{{ codice_search }}">
+        </div>
+        <div class="col-md-3 mb-3">
+            <button type="submit" class="btn btn-primary">Cerca</button>
         </div>
     </div>
 </form>
 
 <a href="{{ url_for('new_collezione') }}" class="btn btn-success mb-3">Aggiungi Nuovo Campione</a>
 
-<!-- Tabella dei campioni -->
-<table class="table table-striped">
+<table class="table">
     <thead>
         <tr>
             <th>Codice</th>
@@ -44,22 +41,24 @@
             <th>Qualità</th>
             <th>TL</th>
             <th>Località</th>
+            <th>Monte</th>
             <th>Posizione</th>
             <th>Azioni</th>
         </tr>
     </thead>
     <tbody>
-        {% for item in items %}
-        <tr class="{% if item.specie_non_valida %}non-valida{% endif %} {% if item.tl %}tl-true{% endif %}">
-            <td>{{ item.codice }}</td>
-            <td>{{ item.specie_nome }}</td>
-            <td>{{ item.qualita }}</td>
-            <td>{{ "Sì" if item.tl else "No" }}</td>
-            <td>{{ item.cod_loc }}</td>
-            <td>{{ item.posizione }}</td>
+        {% for collezione, loc_monte in items %}
+        <tr class="{% if collezione.tl %}table-warning{% elif not collezione.specie_id %}table-danger{% endif %}">
+            <td>{{ collezione.codice }}</td>
+            <td>{{ collezione.specie_nome }}</td>
+            <td>{{ collezione.qualita }}</td>
+            <td>{{ "Sì" if collezione.tl else "No" }}</td>
+            <td>{{ collezione.cod_loc }}</td>
+            <td>{{ loc_monte }}</td>
+            <td>{{ collezione.posizione }}</td>
             <td>
-                <a href="{{ url_for('edit_collezione', id=item.id) }}" class="btn btn-sm btn-primary">Modifica</a>
-                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ item.id }}">
+                <a href="{{ url_for('edit_collezione', id=collezione.id) }}" class="btn btn-sm btn-primary">Modifica</a>
+                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ collezione.id }}">
                     Elimina
                 </button>
             </td>
@@ -68,11 +67,9 @@
     </tbody>
 </table>
 
-
-<!-- Paginazione -->
 {% if pagination.pages > 1 %}
 <nav aria-label="Page navigation">
-    <ul class="pagination justify-content-center">
+    <ul class="pagination">
         {% for page in pagination.iter_pages() %}
             {% if page %}
                 {% if page != pagination.page %}
@@ -90,31 +87,29 @@
 </nav>
 {% endif %}
 
-<!-- Modals di conferma per l'eliminazione -->
-{% for item in items %}
-<div class="modal fade" id="deleteModal{{ item.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ item.id }}" aria-hidden="true">
+{% for collezione, _ in items %}
+<div class="modal fade" id="deleteModal{{ collezione.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ collezione.id }}" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabel{{ item.id }}">Conferma eliminazione</h5>
+                <h5 class="modal-title" id="deleteModalLabel{{ collezione.id }}">Conferma eliminazione</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <p>Sei sicuro di voler eliminare questo campione?</p>
-                <p><strong>Codice:</strong> {{ item.codice }}<br>
-                   <strong>Specie:</strong> {{ item.specie_nome }}</p>
+                <p><strong>Codice:</strong> {{ collezione.codice }}<br>
+                   <strong>Specie:</strong> {{ collezione.specie_nome }}</p>
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="confirmDelete{{ item.id }}">
-                    <label class="form-check-label" for="confirmDelete{{ item.id }}">
+                    <input class="form-check-input" type="checkbox" id="confirmDelete{{ collezione.id }}">
+                    <label class="form-check-label" for="confirmDelete{{ collezione.id }}">
                         Confermo di voler eliminare questo campione
                     </label>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-                <form action="{{ url_for('delete_collezione', id=item.id) }}" method="POST" style="display: inline;">
-                    <input type="hidden" name="_method" value="DELETE">
-                    <button type="submit" class="btn btn-danger" id="deleteButton{{ item.id }}" disabled>Elimina</button>
+                <form action="{{ url_for('delete_collezione', id=collezione.id) }}" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger" id="deleteButton{{ collezione.id }}" disabled>Elimina</button>
                 </form>
             </div>
         </div>
@@ -126,6 +121,4 @@
 
 {% block scripts %}
 {{ super() }}
-<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-<script src="{{ url_for('static', filename='js/collezione_autocomplete.js') }}"></script>
 {% endblock %}

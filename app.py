@@ -53,21 +53,25 @@ def collezione():
     page = request.args.get('page', 1, type=int)
     specie_search = request.args.get('specie-search', '')
     localita_search = request.args.get('localita-search', '')
+    codice_search = request.args.get('codice-search', '')
 
-    query = Collezione.query
+    query = db.session.query(Collezione, Localita.loc_monte).join(Localita, Collezione.cod_loc == Localita.cod_loc)
 
     if specie_search:
         query = query.filter(Collezione.specie_nome.ilike(f'%{specie_search}%'))
     
     if localita_search:
-        query = query.filter(Collezione.cod_loc.ilike(f'%{localita_search}%'))
+        query = query.filter(Localita.cava_min.ilike(f'%{localita_search}%'))
+
+    if codice_search:
+        query = query.filter(Collezione.codice.ilike(f'%{codice_search}%'))
 
     # Paginazione
     pagination = query.order_by(Collezione.codice.desc()).paginate(page=page, per_page=10, error_out=False)
     items = pagination.items
 
     # Calcolo delle statistiche
-    total_campioni = query.count()
+    total_campioni = Collezione.query.count()
     specie_valide = db.session.query(func.count(func.distinct(Collezione.specie_id))).filter(Collezione.specie_id.isnot(None)).scalar()
     specie_non_valide = db.session.query(func.count(func.distinct(Collezione.specie_nome))).filter(Collezione.specie_id.is_(None)).scalar()
 
@@ -78,7 +82,8 @@ def collezione():
                            specie_valide=specie_valide,
                            specie_non_valide=specie_non_valide,
                            specie_search=specie_search,
-                           localita_search=localita_search)
+                           localita_search=localita_search, 
+                           codice_search=codice_search)
 
 @app.route('/localita')
 def localita():
@@ -154,17 +159,28 @@ def new_collezione():
         
         # Gestione di specie valida o non valida
         if form.specie_non_valida.data:
-            # Se è stata inserita una specie non valida, non associare specie_id
             collezione.specie_id = None
             collezione.specie_nome = form.specie_non_valida.data
-            collezione.specie_non_valida = form.specie_non_valida.data
-        else:
-            # Cerca la specie valida nel database
+        elif form.specie.data:
             specie = Specie.query.get(form.specie.data)
             if specie:
                 collezione.specie_id = specie.id
                 collezione.specie_nome = specie.specie
+        else:
+            # Se entrambi i campi sono vuoti, gestisci l'errore
+            flash('Devi inserire una specie valida o non valida', 'error')
+            return render_template('collezione_form.html', form=form, title="Nuovo Campione")
         
+        # Gestione del codice località
+        localita = Localita.query.filter_by(cod_loc=form.cod_loc.data).first()
+        if localita:
+            collezione.cod_loc = localita.cod_loc
+        else:
+            # Se il codice località non esiste, crea una nuova località
+            nuova_localita = Localita(cod_loc=form.cod_loc.data, cava_min=form.cod_loc.data, loc_monte=form.loc_monte.data)
+            db.session.add(nuova_localita)
+            collezione.cod_loc = nuova_localita.cod_loc
+
         db.session.add(collezione)
         db.session.commit()
         flash('Nuovo campione aggiunto con successo!', 'success')
@@ -267,7 +283,16 @@ def specie_autocomplete():
 def localita_autocomplete():
     query = request.args.get('query', '')
     localita = Localita.query.filter(func.lower(func.unaccent(Localita.cava_min)).ilike(f'%{normalize_text(query).lower()}%')).all()
-    results = [{'id': l.id, 'name': l.cava_min} for l in localita]
+    results = [{
+        'id': l.cod_loc,
+        'name': f"{l.cod_loc} - {l.cava_min}",
+        'additionalData': {
+            'loc_monte': l.loc_monte,
+            'comune': l.comune,
+            'provincia': l.provincia
+            # Aggiungi altri campi se necessario
+        }
+    } for l in localita]
     return jsonify(results)
 
 @app.route('/api/specie')
@@ -284,6 +309,20 @@ def get_localita():
     query = request.args.get('query', '')
     localita_list = Localita.query.filter(Localita.nome.ilike(f'%{query}%')).all()
     results = [{'id': localita.id, 'name': localita.nome} for localita in localita_list]
+    return jsonify(results)
+
+@app.route('/api/localita/monte_autocomplete')
+def monte_autocomplete():
+    query = request.args.get('query', '')
+    monti = Localita.query.filter(func.lower(func.unaccent(Localita.loc_monte)).ilike(f'%{normalize_text(query).lower()}%')).all()
+    results = [{'id': m.id, 'name': m.loc_monte} for m in monti]
+    return jsonify(results)
+
+@app.route('/api/luoghi_acquisizione')
+def luoghi_acquisizione():
+    # Supponendo che `Collezione` sia il modello in cui si trova `luogo_acq`
+    luoghi = db.session.query(Collezione.luogo_acq).distinct().all()
+    results = [luogo.luogo_acq for luogo in luoghi]
     return jsonify(results)
 
 @app.route('/tavola_periodica')

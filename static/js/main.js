@@ -1,40 +1,78 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Funzione per inizializzare l'autocomplete
-    function initAutocomplete(inputSelector, url) {
-        $(inputSelector).autocomplete({
-            hint: false,
-            source: function(request, response) {
-                $.ajax({
-                    url: url,
-                    dataType: "json",
-                    data: {
-                        query: request.term
-                    },
-                    success: function(data) {
-                        response(data.map(function(item) {
+    function initSelect2(selector, url, placeholder, callback) {
+        $(selector).select2({
+            ajax: {
+                url: url,
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return {
+                        query: params.term
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.map(function(item) {
                             return {
-                                label: item.name,
-                                value: item.name
+                                id: item.id,
+                                text: item.name,
+                                additionalData: item.additionalData
                             };
-                        }));
-                    }
-                });
+                        })
+                    };
+                },
+                cache: true
             },
-            minLength: 2,
-            select: function(event, ui) {
-                $(this).val(ui.item.value);
-                return false;
+            minimumInputLength: 2,
+            placeholder: placeholder,
+            allowClear: true,
+            tags: true
+        }).on('select2:select', function (e) {
+            if (callback) {
+                callback(e.params.data);
             }
-        }).autocomplete("instance")._renderItem = function(ul, item) {
-            return $("<li>")
-                .append("<div>" + item.label + "</div>")
-                .appendTo(ul);
-        };
+        });
     }
 
-    // Inizializza l'autocompletamento per specie e località
-    initAutocomplete('#specie-search', '/api/specie/autocomplete');
-    initAutocomplete('#localita-search', '/api/localita/autocomplete');
+    // Inizializza Select2 per specie
+    initSelect2("#specie", "/api/specie/autocomplete", "Cerca o inserisci una specie");
+
+    // Inizializza Select2 per codice località con callback
+    initSelect2("#codice-localita", "/api/localita/autocomplete", "Cerca o inserisci un codice località", function(selectedData) {
+        if (selectedData.additionalData) {
+            $('#loc-monte').val(selectedData.additionalData.loc_monte).trigger('change');
+            // Popolamento di altri campi correlati alla località, se necessario
+            // Esempio:
+            // $('#campo-comune').val(selectedData.additionalData.comune);
+            // $('#campo-provincia').val(selectedData.additionalData.provincia);
+        }
+    });
+
+    // Inizializza Select2 per monte
+    initSelect2("#loc-monte", "/api/localita/monte_autocomplete", "Cerca o inserisci un monte");
+
+    // Inizializza Select2 per luogo acquisizione con possibilità di aggiungere nuovi tag
+    $('#luogo-acq').select2({
+        tags: true,
+        tokenSeparators: [',', ' '],
+        ajax: {
+            url: '/api/luoghi_acquisizione',
+            dataType: 'json',
+            processResults: function (data) {
+                console.log("Select2 data:", data);
+                return {
+                    results: data.map(function(item) {
+                        return { id: item, text: item };
+                    })
+                };
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error("Error fetching select2 data:", textStatus, errorThrown);
+            }
+        },
+        placeholder: 'Seleziona o inserisci un luogo',
+        allowClear: true
+    });
 
     // Gestione della doppia conferma per l'eliminazione
     $('input[id^="confirmDelete"]').change(function() {
@@ -49,31 +87,44 @@ document.addEventListener('DOMContentLoaded', function() {
         $('#deleteButton' + id).prop('disabled', true);
     });
 
-    // Inizializzazione di Select2 per i form di collezione
-    function initSelect2(selector, url, placeholder) {
-        $(selector).select2({
-            ajax: {
-                url: url,
-                dataType: 'json',
-                delay: 250,
-                processResults: function (data) {
-                    return {
-                        results: $.map(data, function(item) {
-                            return {
-                                text: item.name,
-                                id: item.id
-                            }
-                        })
-                    };
-                },
-                cache: true
-            },
-            minimumInputLength: 2,
-            placeholder: placeholder
-        });
-    }
+    // Gestione del form di ricerca
+    $('#searchForm').submit(function(e) {
+        e.preventDefault();
+        var specieSearch = $('#specie-search').val();
+        var localitaSearch = $('#localita-search').val();
+        var codiceSearch = $('#codice-search').val();
+        
+        var url = '/collezione?';
+        if (specieSearch) url += 'specie-search=' + encodeURIComponent(specieSearch) + '&';
+        if (localitaSearch) url += 'localita-search=' + encodeURIComponent(localitaSearch) + '&';
+        if (codiceSearch) url += 'codice-search=' + encodeURIComponent(codiceSearch);
+        
+        window.location.href = url;
+    });
 
-    // Inizializza Select2 per specie e località nei form
-    initSelect2('#specie-select', '/api/specie', 'Seleziona una specie');
-    initSelect2('#localita-select', '/api/localita', 'Seleziona una località');
+    // Gestione della paginazione
+    $('.pagination-link').click(function(e) {
+        e.preventDefault();
+        var page = $(this).data('page');
+        var currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('page', page);
+        window.location.href = currentUrl.toString();
+    });
+
+    // Gestione dell'interazione tra specie e specie non valida
+    $('#specie').on('change', function() {
+        if ($(this).val()) {
+            $('#specie_non_valida').val('').prop('disabled', true);
+        } else {
+            $('#specie_non_valida').prop('disabled', false);
+        }
+    });
+
+    $('#specie_non_valida').on('input', function() {
+        if ($(this).val()) {
+            $('#specie').val(null).trigger('change').prop('disabled', true);
+        } else {
+            $('#specie').prop('disabled', false);
+        }
+    });
 });
