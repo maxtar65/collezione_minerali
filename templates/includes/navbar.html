@@ -19,6 +19,20 @@
                     <a class="nav-link" href="{{ url_for('tavola_periodica') }}">Tavola Periodica</a>
                 </li>
             </ul>
+            <ul class="navbar-nav ms-auto">
+                {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.index') }}">Pannello Admin</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                    </li>
+                {% endif %}
+            </ul>
         </div>
     </div>
 </nav>

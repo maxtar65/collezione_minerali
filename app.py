@@ -1,11 +1,13 @@
 from flask import Flask, jsonify, render_template, redirect, url_for, request, flash
-from models import db, Collezione, Localita, Specie, SistemaXX, migrate_sistema_xx
-from forms import CollezioneForm, LocalitaForm, SearchForm, SpecieForm
+from flask_sqlalchemy import SQLAlchemy
+from flask_admin import Admin, AdminIndexView
+from flask_admin.contrib.sqla import ModelView
+from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
+from flask_migrate import Migrate
+from flask_caching import Cache
+from models import db, Collezione, Localita, Specie, SistemaXX
 from settings import DATABASE_PATH
 from sqlalchemy import func, or_, event
-from flask_caching import Cache
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
 import os
 import unicodedata
 
@@ -13,11 +15,55 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DATABASE_PATH}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'SECRET_KEY'
+
+# Inizializzazione delle estensioni
 db.init_app(app)
-
-# migrate = Migrate(app, db)
-
+migrate = Migrate(app, db)
 cache = Cache(app, config={'CACHE_TYPE': 'simple'})
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
+
+# Definizione del modello User per l'autenticazione
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(150), unique=True, nullable=False)
+    password = db.Column(db.String(150), nullable=False)
+
+# Caricatore di utenti
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+# Classe customizzata per proteggere l'accesso ad Admin
+class MyAdminIndexView(AdminIndexView):
+    def is_accessible(self):
+        return current_user.is_authenticated
+
+    def inaccessible_callback(self, name, **kwargs):
+        return redirect(url_for('login'))
+
+# Configurazione di Flask-Admin con la protezione di accesso
+admin = Admin(app, name='Minerali Catalog Admin', template_mode='bootstrap4', index_view=MyAdminIndexView())
+
+# Aggiunta dei modelli al pannello di amministrazione
+admin.add_view(ModelView(Collezione, db.session))
+admin.add_view(ModelView(Localita, db.session))
+admin.add_view(ModelView(Specie, db.session))
+admin.add_view(ModelView(SistemaXX, db.session))
+
+# Variabile per tenere traccia della prima richiesta
+is_first_request = True
+
+@app.before_request
+def create_admin_user():
+    global is_first_request
+    if is_first_request:
+        is_first_request = False
+        user = User.query.filter_by(username='admin').first()
+        if not user:
+            admin = User(username='admin', password='password')  # Ricorda di usare un hash sicuro per le password reali
+            db.session.add(admin)
+            db.session.commit()
 
 # @app.cli.command("migrate-sistema-xx")
 # def migrate_sistema_xx_command():
@@ -47,6 +93,25 @@ def inject_specie_valide():
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        user = User.query.filter_by(username=username).first()
+        if user and user.password == password:
+            login_user(user)
+            return redirect(url_for('admin.index'))
+        else:
+            flash('Login non valido. Riprova.')
+    return render_template('login.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
 
 @app.route('/collezione', methods=['GET'])
 def collezione():
